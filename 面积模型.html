@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:100比例面积比较</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .results {
+            background-color: #f1f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .grid-paper {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            position: relative;
+        }
+        .controls {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .rectangle-label {
+            position: absolute;
+            font-weight: bold;
+            text-align: center;
+            background-color: rgba(255,255,255,0.8);
+            padding: 3px 8px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .scale-info {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        .area-result {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .area-result span {
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .axis-label {
+            position: absolute;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>1:100比例面积比较</h1>
+    <p class="scale-info">※ 纸上1厘米 = 实际10厘米 (1:100比例)</p>
+    
+    <div class="results">
+        <h3>面积计算结果</h3>
+        <div id="area-results"></div>
+    </div>
+    
+    <div class="grid-paper" id="paper-container">
+        <!-- 方格纸将在这里渲染 -->
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="rect1-width">大矩形 宽度:</label>
+            <input type="number" id="rect1-width" step="0.1" value="3" min="0.1">
+            <span>米</span>
+        </div>
+        <div class="control-group">
+            <label for="rect1-height">大矩形 高度:</label>
+            <input type="number" id="rect1-height" step="0.1" value="2" min="0.1">
+            <span>米</span>
+        </div>
+        <div class="control-group">
+            <label for="rect2-width">小矩形 宽度:</label>
+            <input type="number" id="rect2-width" step="0.1" value="0.3" min="0.1">
+            <span>米</span>
+        </div>
+        <div class="control-group">
+            <label for="rect2-height">小矩形 高度:</label>
+            <input type="number" id="rect2-height" step="0.1" value="0.2" min="0.1">
+            <span>米</span>
+        </div>
+        <button onclick="drawComparison()">绘制图形</button>
+    </div>
+
+    <script>
+        // 1:100比例常数 (纸上1cm=实际10cm=0.1m)
+        const SCALE_FACTOR = 100; // 1:100比例
+        const ACTUAL_TO_PAPER = 10; // 实际10cm=纸上1cm
+        const PIXELS_PER_CM = 37.8; // 1厘米≈37.8像素
+        
+        function drawComparison() {
+            // 获取实际尺寸(米)
+            const rect1 = {
+                width: parseFloat(document.getElementById('rect1-width').value),
+                height: parseFloat(document.getElementById('rect1-height').value)
+            };
+            const rect2 = {
+                width: parseFloat(document.getElementById('rect2-width').value),
+                height: parseFloat(document.getElementById('rect2-height').value)
+            };
+            
+            // 计算面积(平方米)
+            const area1 = rect1.width * rect1.height;
+            const area2 = rect2.width * rect2.height;
+            const ratio = area1 / area2;
+            
+            // 转换为纸上尺寸(厘米)
+            const rect1Paper = {
+                width: rect1.width * ACTUAL_TO_PAPER,
+                height: rect1.height * ACTUAL_TO_PAPER
+            };
+            const rect2Paper = {
+                width: rect2.width * ACTUAL_TO_PAPER,
+                height: rect2.height * ACTUAL_TO_PAPER
+            };
+            
+            // 更新面积计算结果
+            document.getElementById('area-results').innerHTML = `
+                <div class="area-result">
+                    大矩形面积: ${rect1.width}m × ${rect1.height}m = <span>${area1} 平方米</span>
+                </div>
+                <div class="area-result">
+                    小矩形面积: ${rect2.width}m × ${rect2.height}m = <span>${area2} 平方米</span>
+                </div>
+                <div class="area-result">
+                    面积比例: <span>${ratio.toFixed(1)}倍</span> (${area1.toFixed(2)} ÷ ${area2.toFixed(2)})
+                </div>
+            `;
+            
+            // 准备方格纸容器
+            const container = document.getElementById('paper-container');
+            container.innerHTML = '';
+            
+            // 设置方格纸大小(增加5cm边距)
+            const paperWidthCm = Math.max(30, rect1Paper.width, rect2Paper.width) + 5;
+            const paperHeightCm = Math.max(30, rect1Paper.height, rect2Paper.height) + 5;
+            
+            container.style.width = (paperWidthCm * PIXELS_PER_CM) + 'px';
+            container.style.height = (paperHeightCm * PIXELS_PER_CM) + 'px';
+            
+            // 创建画布
+            const canvas = document.createElement('canvas');
+            canvas.width = paperWidthCm * PIXELS_PER_CM;
+            canvas.height = paperHeightCm * PIXELS_PER_CM;
+            container.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制白色背景
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制细网格线(每1cm一格)
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += PIXELS_PER_CM) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += PIXELS_PER_CM) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制粗网格线(每10cm一格)
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 2;
+            for (let x = 0; x <= canvas.width; x += PIXELS_PER_CM * 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += PIXELS_PER_CM * 10) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 添加坐标轴标签
+            ctx.fillStyle = '#999';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            // X轴标签 (每10cm)
+            for (let x = PIXELS_PER_CM * 10; x < canvas.width; x += PIXELS_PER_CM * 10) {
+                ctx.fillText((x / (PIXELS_PER_CM * 10)) + '0cm', x, 15);
+            }
+            
+            // Y轴标签 (每10cm)
+            ctx.textAlign = 'left';
+            for (let y = PIXELS_PER_CM * 10; y < canvas.height; y += PIXELS_PER_CM * 10) {
+                ctx.fillText((y / (PIXELS_PER_CM * 10)) + '0cm', 5, y + 5);
+            }
+            
+            // 绘制大矩形 (3m×2m → 30cm×20cm) - 左上角对齐原点
+            const rect1X = 0;
+            const rect1Y = 0;
+            const rect1WidthPx = rect1Paper.width * PIXELS_PER_CM;
+            const rect1HeightPx = rect1Paper.height * PIXELS_PER_CM;
+            
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3;
+            ctx.fillRect(rect1X, rect1Y, rect1WidthPx, rect1HeightPx);
+            ctx.strokeRect(rect1X, rect1Y, rect1WidthPx, rect1HeightPx);
+            
+            // 添加大矩形标签
+            const label1 = document.createElement('div');
+            label1.className = 'rectangle-label';
+            label1.textContent = `${rect1.width}m × ${rect1.height}m`;
+            label1.style.left = (rect1X + rect1WidthPx/2 - 50) + 'px';
+            label1.style.top = (rect1Y + rect1HeightPx/2 - 10) + 'px';
+            label1.style.color = 'red';
+            container.appendChild(label1);
+            
+            // 绘制小矩形 (0.3m×0.2m → 3cm×2cm) - 左上角对齐原点
+            const rect2X = 0;
+            const rect2Y = 0;
+            const rect2WidthPx = rect2Paper.width * PIXELS_PER_CM;
+            const rect2HeightPx = rect2Paper.height * PIXELS_PER_CM;
+            
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.2)';
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.fillRect(rect2X, rect2Y, rect2WidthPx, rect2HeightPx);
+            ctx.strokeRect(rect2X, rect2Y, rect2WidthPx, rect2HeightPx);
+            
+            // 添加小矩形标签
+            const label2 = document.createElement('div');
+            label2.className = 'rectangle-label';
+            label2.textContent = `${rect2.width}m × ${rect2.height}m`;
+            label2.style.left = (rect2X + rect2WidthPx/2 - 50) + 'px';
+            label2.style.top = (rect2Y + rect2HeightPx/2 - 10) + 'px';
+            label2.style.color = 'blue';
+            container.appendChild(label2);
+        }
+        
+        // 初始绘制
+        window.onload = drawComparison;
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动画分数条：完整修复版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        #animation-container {
+            height: 100px;
+            position: relative;
+            margin: 30px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        #whole-bar {
+            height: 60px;
+            background: #3498db;
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .segment {
+            height: 60px;
+            position: absolute;
+            top: 20px;
+            opacity: 0;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        .segment.show {
+            opacity: 0.8;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .highlight {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        /* 8种分段颜色 */
+        .segment-0 { background: #FF9999; }
+        .segment-1 { background: #99FF99; }
+        .segment-2 { background: #9999FF; }
+        .segment-3 { background: #FFFF99; }
+        .segment-4 { background: #FF99FF; }
+        .segment-5 { background: #99FFFF; }
+        .segment-6 { background: #FFCC99; }
+        .segment-7 { background: #CC99FF; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>动画分数条：完整修复版</h1>
+        <p>点击按钮观看 <strong>4.8 ÷ 0.6 = 8</strong> 和 <strong>48 ÷ 6 = 8</strong></p>
+        
+        <div id="animation-container">
+            <div id="whole-bar">4.8</div>
+            <!-- 分段将通过JS动态生成 -->
+        </div>
+        
+        <div class="controls">
+            <button class="button" id="cut-button" onclick="startCutting()">开始切割</button>
+            <button class="button" id="scale-button" onclick="scaleUp()" disabled>放大10倍</button>
+            <button class="button" id="reset-button" onclick="reset()">重置</button>
+        </div>
+        
+        <p>
+            每 <span id="divisor-value">0.6</span> 为一段，
+            共 <span class="highlight" id="result">8</span> 段
+        </p>
+    </div>
+
+    <script>
+        const totalValue = 4.8;
+        const segmentValue = 0.6;
+        const segmentCount = totalValue / segmentValue; // 8段
+        const colors = ['segment-0', 'segment-1', 'segment-2', 'segment-3', 
+                       'segment-4', 'segment-5', 'segment-6', 'segment-7'];
+        let isScaled = false;
+        let segments = [];
+
+        // 初始化分段（隐藏状态）
+        function initSegments() {
+            const container = document.getElementById("animation-container");
+            const containerWidth = container.offsetWidth;
+            
+            // 清空现有分段
+            segments.forEach(seg => {
+                if (seg.element && seg.element.parentNode) {
+                    container.removeChild(seg.element);
+                }
+            });
+            segments = [];
+            
+            // 设置整体条数值
+            document.getElementById("whole-bar").textContent = isScaled ? "48" : "4.8";
+            
+            // 计算分段宽度
+            const displayTotal = isScaled ? totalValue * 10 : totalValue;
+            const displaySegment = isScaled ? segmentValue * 10 : segmentValue;
+            const segmentWidth = (displaySegment / displayTotal) * containerWidth;
+            
+            // 创建分段（初始隐藏）
+            for (let i = 0; i < segmentCount; i++) {
+                const segment = document.createElement("div");
+                segment.className = `segment ${colors[i]}`;
+                segment.style.left = `${i * segmentWidth}px`;
+                segment.style.width = `${segmentWidth}px`;
+                segment.textContent = displaySegment;
+                container.appendChild(segment);
+                
+                segments.push({
+                    element: segment,
+                    left: i * segmentWidth,
+                    width: segmentWidth
+                });
+            }
+            
+            // 更新文字说明
+            document.getElementById("divisor-value").textContent = displaySegment;
+            document.getElementById("result").textContent = segmentCount;
+        }
+
+        // 开始切割（分段依次显示）
+        function startCutting() {
+            document.getElementById("cut-button").disabled = true;
+            
+            // 如果是放大状态，直接显示所有分段（不再动画）
+            if (isScaled) {
+                segments.forEach(seg => {
+                    seg.element.classList.add("show");
+                });
+                return;
+            }
+            
+            // 原始状态：分段依次显示（每0.5秒一个）
+            segments.forEach((seg, index) => {
+                setTimeout(() => {
+                    seg.element.classList.add("show");
+                    
+                    // 最后一个分段显示后启用放大按钮
+                    if (index === segments.length - 1) {
+                        document.getElementById("scale-button").disabled = false;
+                    }
+                }, index * 500);
+            });
+        }
+
+        // 放大10倍（自动触发切割）
+        function scaleUp() {
+            isScaled = true;
+            document.getElementById("scale-button").disabled = true;
+            
+            // 重新初始化
+            initSegments();
+            
+            // 自动触发切割（无延迟）
+            setTimeout(() => {
+                segments.forEach(seg => {
+                    seg.element.classList.add("show");
+                });
+            }, 100);
+        }
+
+        // 重置
+        function reset() {
+            isScaled = false;
+            document.getElementById("cut-button").disabled = false;
+            document.getElementById("scale-button").disabled = true;
+            initSegments();
+        }
+
+        // 初始化
+        window.onload = initSegments;
+        window.addEventListener('resize', initSegments);
+    </script>
+</body>
+</html>

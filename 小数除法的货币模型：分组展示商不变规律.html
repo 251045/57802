@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小数除法的货币模型 - 分组展示商不变规律</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .model {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+        .money-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            margin: 20px 0;
+        }
+        .money {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+        .yuan {
+            background: #e74c3c; /* 红色代表元 */
+        }
+        .jiao {
+            background: #3498db; /* 蓝色代表角 */
+        }
+        .group {
+            border: 2px dashed white;
+            padding: 5px;
+            margin: 5px;
+            display: inline-block;
+            border-radius: 10px;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .explanation {
+            margin: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-left: 5px solid #3498db;
+            text-align: left;
+        }
+        /* 8种分组颜色 */
+        .group-1 { background: #FF9999; }
+        .group-2 { background: #99FF99; }
+        .group-3 { background: #9999FF; }
+        .group-4 { background: #FFFF99; }
+        .group-5 { background: #FF99FF; }
+        .group-6 { background: #99FFFF; }
+        .group-7 { background: #FFCC99; }
+        .group-8 { background: #CC99FF; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>小数除法的货币模型：分组展示商不变规律</h1>
+        <p>直观展示 <strong>4.8元 ÷ 0.6元 = 8</strong> （每组0.6元，共8组）</p>
+        
+        <div class="model">
+            <h2 id="title">原始单位：元（4.8元 ÷ 0.6元）</h2>
+            <div id="money-view">
+                <div class="money-container" id="money-container">
+                    <!-- 动态生成8个分组 -->
+                </div>
+                <p>每组 <strong>0.6元</strong>（6个0.1元），共分成 <span id="result" style="color:red;font-size:24px">8</span> 组</p>
+            </div>
+            <button class="button" onclick="toggleModel()">切换为“角”单位</button>
+        </div>
+
+        <div class="explanation">
+            <h3>教学说明：</h3>
+            <p>1. <strong>原始单位（元）</strong>：4.8元 = 48个0.1元，除数0.6元 = 6个0.1元。</p>
+            <p>2. <strong>分组逻辑</strong>：每6个0.1元为一组，共8组（颜色区分）。</p>
+            <p>3. <strong>转换单位（角）</strong>：1元 = 10角 → 4.8元 = 48角，0.6元 = 6角，仍为8组。</p>
+            <p>4. <strong>商不变规律</strong>：被除数和除数同时 ×10，商不变！</p>
+        </div>
+    </div>
+
+    <script>
+        let isJiaoMode = false;
+        const groupColors = ['group-1', 'group-2', 'group-3', 'group-4', 'group-5', 'group-6', 'group-7', 'group-8'];
+
+        function createMoneyGroups() {
+            const container = document.getElementById("money-container");
+            container.innerHTML = "";
+
+            if (isJiaoMode) {
+                // 角模式：48角（8组×6角）
+                document.getElementById("title").textContent = "转换单位：角（48角 ÷ 6角）";
+                for (let group = 0; group < 8; group++) {
+                    const groupDiv = document.createElement("div");
+                    groupDiv.className = `group ${groupColors[group]}`;
+                    for (let i = 0; i < 6; i++) {
+                        const coin = document.createElement("div");
+                        coin.className = "money jiao";
+                        coin.textContent = "1角";
+                        groupDiv.appendChild(coin);
+                    }
+                    container.appendChild(groupDiv);
+                }
+            } else {
+                // 元模式：4.8元 = 48个0.1元（8组×6个0.1元）
+                document.getElementById("title").textContent = "原始单位：元（4.8元 ÷ 0.6元）";
+                for (let group = 0; group < 8; group++) {
+                    const groupDiv = document.createElement("div");
+                    groupDiv.className = `group ${groupColors[group]}`;
+                    for (let i = 0; i < 6; i++) {
+                        const coin = document.createElement("div");
+                        coin.className = "money jiao";
+                        coin.textContent = "0.1元";
+                        groupDiv.appendChild(coin);
+                    }
+                    container.appendChild(groupDiv);
+                }
+            }
+        }
+
+        function toggleModel() {
+            isJiaoMode = !isJiaoMode;
+            createMoneyGroups();
+        }
+
+        // 初始化
+        createMoneyGroups();
+    </script>
+</body>
+</html>

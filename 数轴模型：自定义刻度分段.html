@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数轴模型：自定义刻度分段</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .number-line-container {
+            overflow-x: auto;
+            margin: 30px 0;
+            padding: 20px 0;
+        }
+        .number-line {
+            position: relative;
+            height: 100px;
+            margin: 0 auto;
+            background: linear-gradient(to right, #f9f9f9, #eee);
+            border-bottom: 2px solid #333;
+            min-width: 500px;
+        }
+        .tick {
+            position: absolute;
+            bottom: 0;
+            width: 1px;
+            height: 10px;
+            background: #555;
+            transform: translateX(-50%);
+        }
+        .tick.main {
+            height: 20px;
+            background: #333;
+        }
+        .tick-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+        }
+        .segment {
+            position: absolute;
+            height: 30px;
+            bottom: 20px;
+            opacity: 0.7;
+            border-radius: 4px;
+        }
+        .segment-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .explanation {
+            margin: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-left: 5px solid #3498db;
+            text-align: left;
+        }
+        .highlight {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        /* 8种分段颜色 */
+        .segment-0 { background: #FF9999; }
+        .segment-1 { background: #99FF99; }
+        .segment-2 { background: #9999FF; }
+        .segment-3 { background: #FFFF99; }
+        .segment-4 { background: #FF99FF; }
+        .segment-5 { background: #99FFFF; }
+        .segment-6 { background: #FFCC99; }
+        .segment-7 { background: #CC99FF; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>数轴模型：自定义刻度分段</h1>
+        <p>严格按需求显示刻度：<strong>4.8÷0.6每0.5一段</strong>，<strong>48÷6每5一段</strong></p>
+        
+        <div class="model">
+            <h2 id="title">原始数轴（4.8 ÷ 0.6）</h2>
+            <div class="number-line-container">
+                <div class="number-line" id="number-line">
+                    <!-- 动态生成数轴 -->
+                </div>
+            </div>
+            <p>
+                每 <span id="divisor-value">0.6</span> 为一段，
+                共 <span class="highlight" id="result">8</span> 段（颜色区分）
+            </p>
+            <button class="button" onclick="toggleScale()">切换为放大10倍视图</button>
+        </div>
+
+        <div class="explanation">
+            <h3>教学说明：</h3>
+            <p>1. <strong>原始数轴</strong>：总长度4.8，刻度每0.5标记，但每段仍为0.6（8段不同颜色）。</p>
+            <p>2. <strong>放大视图</strong>：总长度48，刻度每5标记，但每段仍为6（保持8段）。</p>
+            <p>3. <strong>关键规律</strong>：虽然刻度间隔变化，但实际分段长度（0.6→6）和数量（8）不变！</p>
+        </div>
+    </div>
+
+    <script>
+        let isScaled = false;
+        const totalLength = 4.8;
+        const segmentLength = 0.6;
+        const segmentCount = totalLength / segmentLength; // 8段
+        const colors = ['segment-0', 'segment-1', 'segment-2', 'segment-3', 
+                       'segment-4', 'segment-5', 'segment-6', 'segment-7'];
+
+        function drawNumberLine() {
+            const line = document.getElementById("number-line");
+            line.innerHTML = "";
+            const lineWidth = line.offsetWidth;
+            
+            // 当前单位下的数值
+            const displayTotal = isScaled ? totalLength * 10 : totalLength;
+            const displaySegment = isScaled ? segmentLength * 10 : segmentLength;
+            const scale = lineWidth / displayTotal;
+
+            // 自定义刻度间隔
+            const tickInterval = isScaled ? 5 : 0.5; // 48÷6时每5一段，4.8÷0.6时每0.5一段
+            const tickCount = Math.ceil(displayTotal / tickInterval);
+
+            // 绘制刻度
+            for (let i = 0; i <= tickCount; i++) {
+                const pos = i * tickInterval;
+                if (pos > displayTotal) break;
+                
+                const tick = document.createElement("div");
+                tick.className = "tick main";
+                tick.style.left = `${pos * scale}px`;
+                line.appendChild(tick);
+
+                const label = document.createElement("div");
+                label.className = "tick-label";
+                label.textContent = pos.toFixed(isScaled ? 0 : 1);
+                label.style.left = `${pos * scale}px`;
+                line.appendChild(label);
+            }
+
+            // 绘制分段（严格按0.6/6的长度）
+            for (let i = 0; i < segmentCount; i++) {
+                const segment = document.createElement("div");
+                segment.className = `segment ${colors[i]}`;
+                segment.style.left = `${i * displaySegment * scale}px`;
+                segment.style.width = `${displaySegment * scale}px`;
+                line.appendChild(segment);
+
+                // 分段标签（显示实际分段长度）
+                if (i === 0) {
+                    const label = document.createElement("div");
+                    label.className = "segment-label";
+                    label.textContent = displaySegment.toFixed(isScaled ? 0 : 1);
+                    label.style.left = `${(i + 0.5) * displaySegment * scale}px`;
+                    line.appendChild(label);
+                }
+            }
+
+            // 更新文字说明
+            document.getElementById("title").textContent = isScaled 
+                ? "放大后的数轴（48 ÷ 6）" 
+                : "原始数轴（4.8 ÷ 0.6）";
+            document.getElementById("divisor-value").textContent = displaySegment.toFixed(isScaled ? 0 : 1);
+        }
+
+        function toggleScale() {
+            isScaled = !isScaled;
+            drawNumberLine();
+        }
+
+        // 初始化
+        window.onload = drawNumberLine;
+        window.addEventListener('resize', drawNumberLine);
+    </script>
+</body>
+</html>

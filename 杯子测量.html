@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>杯子测量：直观对比4.8和48</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f9ff;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .comparison {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            align-items: flex-end;
+        }
+        .column {
+            width: 45%;
+        }
+        .big-container {
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+        /* 大杯子尺寸区分 */
+        .big-cup.small-scale {
+            width: 80px;
+            height: 160px;
+        }
+        .big-cup.large-scale {
+            width: 120px;
+            height: 240px;
+        }
+        .big-cup {
+            background: rgba(200, 220, 240, 0.5);
+            border: 3px solid #3498db;
+            border-radius: 0 0 30px 30px;
+            position: relative;
+        }
+        .liquid {
+            width: 100%;
+            background: linear-gradient(to top, #3498db, #67b0e6);
+            position: absolute;
+            bottom: 0;
+            border-radius: 0 0 25px 25px;
+            transition: height 1s;
+        }
+        /* 小杯子尺寸区分 */
+        .small-cups {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        .small-cup.small-scale {
+            width: 40px;
+            height: 60px;
+        }
+        .small-cup.large-scale {
+            width: 60px;
+            height: 90px;
+        }
+        .small-cup {
+            background: rgba(200, 220, 240, 0.3);
+            border: 2px solid #3498db;
+            border-radius: 0 0 15px 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .cup-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+        }
+        .measure-line {
+            position: absolute;
+            width: 110%;
+            left: -5%;
+            border-top: 2px dashed #e74c3c;
+        }
+        .measure-label {
+            position: absolute;
+            right: -45px;
+            transform: translateY(-50%);
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 14px;
+            background: white;
+            padding: 0 5px;
+        }
+        .math-display {
+            font-size: 22px;
+            margin: 30px 0;
+            font-weight: bold;
+        }
+        .highlight {
+            color: #e74c3c;
+            font-size: 24px;
+        }
+        .button {
+            background: linear-gradient(to right, #3498db, #3cb0fd);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 10px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .unit-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #e8f4f8;
+            border-radius: 12px;
+            font-size: 14px;
+            margin: 0 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>杯子测量对比实验</h1>
+        <p>清晰区分4.8和48的量级差异，展示商不变规律</p>
+        
+        <div class="comparison">
+            <div class="column">
+                <h3>小规模测量</h3>
+                <div class="big-container">
+                    <div class="big-cup small-scale">
+                        <div class="liquid" id="small-liquid" style="height: 100%;"></div>
+                        <div class="measure-line" style="bottom: 37.5%;">
+                            <span class="measure-label">0.6L</span>
+                        </div>
+                        <div class="cup-label">总量: 4.8<span class="unit-tag">升</span></div>
+                    </div>
+                </div>
+                <div class="small-cups" id="small-cups">
+                    <!-- 小杯子将通过JS生成 -->
+                </div>
+                <p>4.8 ÷ 0.6 = <span class="highlight">8</span> 杯</p>
+            </div>
+            
+            <div class="column">
+                <h3>大规模测量（×10）</h3>
+                <div class="big-container">
+                    <div class="big-cup large-scale">
+                        <div class="liquid" id="large-liquid" style="height: 100%;"></div>
+                        <div class="measure-line" style="bottom: 37.5%;">
+                            <span class="measure-label">6L</span>
+                        </div>
+                        <div class="cup-label">总量: 48<span class="unit-tag">升</span></div>
+                    </div>
+                </div>
+                <div class="small-cups" id="large-cups">
+                    <!-- 大杯子将通过JS生成 -->
+                </div>
+                <p>48 ÷ 6 = <span class="highlight">8</span> 杯</p>
+            </div>
+        </div>
+        
+        <div class="math-display">
+            虽然杯子大小不同：<br>
+            <span style="font-size: 0.9em;">
+                4.8<span class="unit-tag">L</span> → 48<span class="unit-tag">L</span> (×10) | 
+                0.6<span class="unit-tag">L</span> → 6<span class="unit-tag">L</span> (×10)
+            </span><br>
+            但都能装 <span class="highlight">8</span> 杯（商不变）
+        </div>
+        
+        <div>
+            <button class="button" id="small-pour-button" onclick="startSmallPouring()">4.8 ÷ 0.6 倒水</button>
+            <button class="button" id="large-pour-button" onclick="startLargePouring()">48 ÷ 6 倒水</button>
+            <button class="button" id="reset-button" onclick="reset()">重置实验</button>
+        </div>
+    </div>
+
+    <script>
+        // 常量定义
+        const smallTotal = 4.8;  // 小规模总量
+        const smallCup = 0.6;    // 小杯子容量
+        const largeTotal = 48;   // 大规模总量
+        const largeCup = 6;      // 大杯子容量
+        const cupCount = smallTotal / smallCup; // 8杯
+        
+        // 初始化杯子
+        function initCups() {
+            // 小杯子组
+            const smallCups = document.getElementById("small-cups");
+            smallCups.innerHTML = '';
+            
+            // 大杯子组
+            const largeCups = document.getElementById("large-cups");
+            largeCups.innerHTML = '';
+            
+            // 创建8个小杯子（两种尺寸）
+            for (let i = 0; i < cupCount; i++) {
+                // 小规模杯子
+                const smallCupElement = document.createElement("div");
+                smallCupElement.className = "small-cup small-scale";
+                smallCupElement.innerHTML = `
+                    <div class="liquid" style="height: 0;"></div>
+                    <div class="cup-label">${i+1}号杯</div>
+                `;
+                smallCups.appendChild(smallCupElement);
+                
+                // 大规模杯子
+                const largeCupElement = document.createElement("div");
+                largeCupElement.className = "small-cup large-scale";
+                largeCupElement.innerHTML = `
+                    <div class="liquid" style="height: 0;"></div>
+                    <div class="cup-label">${i+1}号杯</div>
+                `;
+                largeCups.appendChild(largeCupElement);
+            }
+        }
+        
+        // 开始小规模倒水动画
+        function startSmallPouring() {
+            document.getElementById("small-pour-button").disabled = true;
+            document.getElementById("large-pour-button").disabled = true;
+            
+            const smallLiquid = document.getElementById("small-liquid");
+            const smallCups = document.querySelectorAll("#small-cups .liquid");
+            
+            // 重置大规模部分
+            document.getElementById("large-liquid").style.height = "100%";
+            document.querySelectorAll("#large-cups .liquid").forEach(cup => {
+                cup.style.height = "0%";
+            });
+            
+            // 液体高度减少动画
+            let height = 100;
+            const interval = setInterval(() => {
+                height -= 1;
+                smallLiquid.style.height = `${height}%`;
+                
+                // 计算当前应该填满的杯子数量
+                const filledCups = Math.min(
+                    Math.floor((100 - height) / (100 / cupCount)), 
+                    cupCount
+                );
+                
+                // 填满对应的杯子
+                for (let i = 0; i < cupCount; i++) {
+                    if (i < filledCups) {
+                        smallCups[i].style.height = "100%";
+                    }
+                }
+                
+                if (height <= 0) {
+                    clearInterval(interval);
+                    document.getElementById("small-pour-button").disabled = false;
+                    document.getElementById("large-pour-button").disabled = false;
+                }
+            }, 30);
+        }
+        
+        // 开始大规模倒水动画
+        function startLargePouring() {
+            document.getElementById("small-pour-button").disabled = true;
+            document.getElementById("large-pour-button").disabled = true;
+            
+            const largeLiquid = document.getElementById("large-liquid");
+            const largeCups = document.querySelectorAll("#large-cups .liquid");
+            
+            // 重置小规模部分
+            document.getElementById("small-liquid").style.height = "100%";
+            document.querySelectorAll("#small-cups .liquid").forEach(cup => {
+                cup.style.height = "0%";
+            });
+            
+            // 液体高度减少动画
+            let height = 100;
+            const interval = setInterval(() => {
+                height -= 1;
+                largeLiquid.style.height = `${height}%`;
+                
+                // 计算当前应该填满的杯子数量
+                const filledCups = Math.min(
+                    Math.floor((100 - height) / (100 / cupCount)), 
+                    cupCount
+                );
+                
+                // 填满对应的杯子
+                for (let i = 0; i < cupCount; i++) {
+                    if (i < filledCups) {
+                        largeCups[i].style.height = "100%";
+                    }
+                }
+                
+                if (height <= 0) {
+                    clearInterval(interval);
+                    document.getElementById("small-pour-button").disabled = false;
+                    document.getElementById("large-pour-button").disabled = false;
+                }
+            }, 30);
+        }
+        
+        // 重置实验
+        function reset() {
+            document.getElementById("small-pour-button").disabled = false;
+            document.getElementById("large-pour-button").disabled = false;
+            document.getElementById("small-liquid").style.height = "100%";
+            document.getElementById("large-liquid").style.height = "100%";
+            initCups();
+        }
+        
+        // 初始化
+        window.onload = initCups;
+    </script>
+</body>
+</html>

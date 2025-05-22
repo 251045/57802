@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小数除法的方格模型 - 商不变规律</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .model {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 10px auto;
+            justify-content: center;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            background: #e0f7fa;
+        }
+        .divisor {
+            background: #ffcc80;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .explanation {
+            margin: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-left: 5px solid #3498db;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>小数除法的方格模型：商不变规律</h1>
+        <p>展示 <strong>4.8 ÷ 0.6</strong> 如何转化为 <strong>48 ÷ 6</strong></p>
+        
+        <div class="model">
+            <h2 id="title">原始小数（4.8 ÷ 0.6）</h2>
+            <div class="grid" id="grid">
+                <!-- 动态生成方格 -->
+            </div>
+            <p id="count">每组 0.6（6小格），共分成 <span id="result">8</span> 组</p>
+            <button class="button" onclick="toggleModel()">切换为放大10倍视图</button>
+        </div>
+
+        <div class="explanation">
+            <h3>教学说明：</h3>
+            <p>1. <strong>原始视图</strong>：每个小格 = 0.1，4.8 由 48 个小格组成（黄色为除数 0.6 = 6小格）。</p>
+            <p>2. <strong>放大10倍</strong>：重新定义 1小格 = 1，4.8 → 48，0.6 → 6，但商（组数）仍为 8。</p>
+            <p>3. <strong>规律</strong>：被除数和除数同时 ×10，商不变！</p>
+        </div>
+    </div>
+
+    <script>
+        let isScaled = false;
+
+        function createGrid() {
+            const grid = document.getElementById("grid");
+            grid.innerHTML = "";
+            const totalCells = isScaled ? 48 : 48; // 总格数相同（4.8=48小格）
+            const divisor = isScaled ? 6 : 6;       // 除数格数（0.6=6小格）
+
+            for (let i = 1; i <= totalCells; i++) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                if (i % divisor === 0) {
+                    cell.classList.add("divisor"); // 标记除数分组的最后一格
+                }
+                cell.textContent = isScaled ? i : (i / 10).toFixed(1); // 显示数值
+                grid.appendChild(cell);
+            }
+
+            document.getElementById("title").textContent = 
+                isScaled ? "放大10倍（48 ÷ 6）" : "原始小数（4.8 ÷ 0.6）";
+            document.getElementById("result").textContent = totalCells / divisor;
+        }
+
+        function toggleModel() {
+            isScaled = !isScaled;
+            createGrid();
+        }
+
+        // 初始化
+        createGrid();
+    </script>
+</body>
+</html>
